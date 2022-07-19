@@ -45,7 +45,6 @@ func (bp BlockSyncer) Sync(ctx context.Context, block *ckbTypes.Block, checkInfo
 	var entryVec []biz.Entry
 	kvPair := biz.KvPair{}
 	for index, tx := range block.Transactions {
-		// ParseRegistryEntries TODO 拆到独立到 repo 中
 		if bp.hasCotaRegistryCell(tx.Outputs, systemScripts.CotaRegistryType) && bp.isUpdateCotaRegistryTx(tx.Witnesses[0]) {
 			registers, err := bp.registerCotaUsecase.ParseRegistryEntries(ctx, block.Header.Number, tx)
 			if err != nil && err.Error() == "No data" {
@@ -101,14 +100,14 @@ func (bp BlockSyncer) parseCotaEntries(blockNumber uint64, entries []biz.Entry) 
 	for _, entry := range entries {
 		if len(entry.InputType) > 0 {
 			switch entry.InputType[0] {
-			//	Define 创建 DefineCota Kv pairs
+			//	Define: Create DefineCota Kv pairs
 			case 1:
 				defineCotas, err := bp.defineCotaUsecase.ParseDefineCotaEntries(blockNumber, entry)
 				if err != nil {
 					return kvPair, err
 				}
 				kvPair.DefineCotas = append(kvPair.DefineCotas, defineCotas...)
-			//	Mint 更新 DefineCota Kv pairs 创建 withdrawCota kv pairs
+			//	Mint:  Update DefineCota Kv pairs and create withdrawCota kv pairs
 			case 2:
 				updatedDefineCotas, withdrawCotas, err := bp.mintCotaUsecase.ParseMintCotaEntries(blockNumber, entry)
 				if err != nil {
@@ -116,14 +115,14 @@ func (bp BlockSyncer) parseCotaEntries(blockNumber uint64, entries []biz.Entry) 
 				}
 				kvPair.UpdatedDefineCotas = append(kvPair.UpdatedDefineCotas, updatedDefineCotas...)
 				kvPair.WithdrawCotas = append(kvPair.WithdrawCotas, withdrawCotas...)
-			//	Withdraw 删除 HoldCota kv pairs 创建 withdrawCota kv pairs
+			//	Withdraw: Delete HoldCota kv pairs and create withdrawCota kv pairs
 			case 3:
 				withdrawCotas, err := bp.withdrawCotaUsecase.ParseWithdrawCotaEntries(blockNumber, entry)
 				if err != nil {
 					return kvPair, err
 				}
 				kvPair.WithdrawCotas = append(kvPair.WithdrawCotas, withdrawCotas...)
-			//	Claim 创建 HoldCota kv pairs 与 claimedCota kv pairs
+			//	Claim: Create HoldCota kv pairs and claimedCota kv pairs
 			case 4:
 				holdCotas, claimedCotas, err := bp.claimedCotaUsecase.ParseClaimedCotaEntries(blockNumber, entry)
 				if err != nil {
@@ -131,14 +130,14 @@ func (bp BlockSyncer) parseCotaEntries(blockNumber uint64, entries []biz.Entry) 
 				}
 				kvPair.ClaimedCotas = append(kvPair.ClaimedCotas, claimedCotas...)
 				kvPair.HoldCotas = append(kvPair.HoldCotas, holdCotas...)
-			//	Update 更新 HoldCota kv pairs
+			//	Update: Update HoldCota kv pairs
 			case 5:
 				holdCotas, err := bp.holdCotaUsecase.ParseHoldCotaEntries(blockNumber, entry)
 				if err != nil {
 					return kvPair, err
 				}
 				kvPair.UpdatedHoldCotas = append(kvPair.HoldCotas, holdCotas...)
-			//	Transfer 创建 claimedCota kv pairs 与 withdrawCota kv pairs
+			//	Transfer: Create claimedCota kv pairs and withdrawCota kv pairs
 			case 6:
 				claimedCotas, withdrawCotas, err := bp.transferCotaUsecase.ParseTransferCotaEntries(blockNumber, entry)
 				if err != nil {
@@ -146,7 +145,7 @@ func (bp BlockSyncer) parseCotaEntries(blockNumber uint64, entries []biz.Entry) 
 				}
 				kvPair.ClaimedCotas = append(kvPair.ClaimedCotas, claimedCotas...)
 				kvPair.WithdrawCotas = append(kvPair.WithdrawCotas, withdrawCotas...)
-			//	Claim and Update 创建 HoldCota kv pairs 与 claimedCota kv pairs
+			//	Claim and Update:  Create HoldCota kv pairs and claimedCota kv pairs
 			case 7:
 				holdCotas, claimedCotas, err := bp.claimedCotaUsecase.ParseClaimedUpdateCotaEntries(blockNumber, entry)
 				if err != nil {
@@ -154,7 +153,7 @@ func (bp BlockSyncer) parseCotaEntries(blockNumber uint64, entries []biz.Entry) 
 				}
 				kvPair.ClaimedCotas = append(kvPair.ClaimedCotas, claimedCotas...)
 				kvPair.HoldCotas = append(kvPair.HoldCotas, holdCotas...)
-			//	Transfer and Update 创建 claimedCota kv pairs 与 withdrawCota kv pairs
+			//	Transfer and Update: Create claimedCota kv pairs and withdrawCota kv pairs
 			case 8:
 				claimedCotas, withdrawCotas, err := bp.transferCotaUsecase.ParseTransferUpdateCotaEntries(blockNumber, entry)
 				if err != nil {

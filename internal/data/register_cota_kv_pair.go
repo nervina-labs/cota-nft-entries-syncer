@@ -3,12 +3,13 @@ package data
 import (
 	"context"
 	"encoding/hex"
+	"time"
+
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/biz"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/data/blockchain"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/logger"
 	"github.com/nervina-labs/cota-smt-go/smt"
 	ckbTypes "github.com/nervosnetwork/ckb-sdk-go/types"
-	"time"
 )
 
 var _ biz.RegisterCotaKvPairRepo = (*registerCotaKvPairRepo)(nil)
@@ -47,22 +48,19 @@ func (rp registerCotaKvPairRepo) DeleteRegisterCotaKvPairs(ctx context.Context, 
 	return nil
 }
 
-func (rp registerCotaKvPairRepo) ParseRegistryEntries(_ context.Context, blockNumber uint64, tx *ckbTypes.Transaction) ([]biz.RegisterCotaKvPair, error) {
+func (rp registerCotaKvPairRepo) ParseRegistryEntries(_ context.Context, blockNumber uint64, tx *ckbTypes.Transaction) (registerCotas []biz.RegisterCotaKvPair, err error) {
 	bytes, err := blockchain.WitnessArgsFromSliceUnchecked(tx.Witnesses[0]).InputType().IntoBytes()
 	if err != nil {
-		return []biz.RegisterCotaKvPair{}, err
+		return
 	}
 	registerWitnessType := bytes.RawData()
 	registryEntries := smt.CotaNFTRegistryEntriesFromSliceUnchecked(registerWitnessType)
-	rp.logger.Infof(context.TODO(), "entries: %v", registryEntries)
 	registryVec := registryEntries.Registries()
-	registerCotas := make([]biz.RegisterCotaKvPair, registryVec.Len())
 	for i := uint(0); i < registryVec.Len(); i++ {
-		registryEntry := registryVec.Get(i)
-		registerCotas[i] = biz.RegisterCotaKvPair{
+		registerCotas = append(registerCotas, biz.RegisterCotaKvPair{
 			BlockNumber: blockNumber,
-			LockHash:    hex.EncodeToString(registryEntry.LockHash().RawData()),
-		}
+			LockHash:    hex.EncodeToString(registryVec.Get(i).LockHash().RawData()),
+		})
 	}
-	return registerCotas, nil
+	return
 }

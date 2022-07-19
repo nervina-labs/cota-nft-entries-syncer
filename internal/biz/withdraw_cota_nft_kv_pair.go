@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/logger"
 )
 
@@ -12,12 +13,14 @@ type WithdrawCotaNftKvPair struct {
 	TokenIndex           uint32
 	OutPoint             string
 	OutPointCrc          uint32
+	TxHash               string
 	State                uint8
 	Configure            uint8
 	Characteristic       string
 	ReceiverLockScriptId uint
 	LockHash             string
 	LockHashCrc          uint32
+	LockScriptId         uint
 	Version              uint8
 }
 

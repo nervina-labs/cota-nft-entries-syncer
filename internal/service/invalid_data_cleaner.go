@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/biz"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/data"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/logger"
@@ -30,7 +31,7 @@ func (i InvalidDataCleaner) Start(ctx context.Context, _ string) error {
 		return err
 	}
 
-	// TODO: replace block number
+	// The block number where the cota smart contract was deployed
 	if info.Chain == "ckb" {
 		blockNumber = 7233113
 	} else {

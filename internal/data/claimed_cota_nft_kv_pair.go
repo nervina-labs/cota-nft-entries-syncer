@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/hex"
+	"hash/crc32"
+	"time"
+
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/biz"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/logger"
 	"github.com/nervina-labs/cota-smt-go/smt"
-	"hash/crc32"
-	"time"
 )
 
 var _ biz.ClaimedCotaNftKvPairRepo = (*claimedCotaNftKvPairRepo)(nil)
@@ -54,17 +55,12 @@ func (rp claimedCotaNftKvPairRepo) DeleteClaimedCotaNftKvPairs(ctx context.Conte
 }
 
 func (rp claimedCotaNftKvPairRepo) ParseClaimedCotaEntries(blockNumber uint64, entry biz.Entry) (holdCotas []biz.HoldCotaNftKvPair, claimedCotas []biz.ClaimedCotaNftKvPair, err error) {
-	return rp.generateV0ToV2ClaimedKvPair(blockNumber, entry)
-}
+	var (
+		holdCotaKeyVec    *smt.HoldCotaNFTKeyVec
+		holdCotaValueVec  *smt.HoldCotaNFTValueVec
+		claimedCotaKeyVec *smt.ClaimCotaNFTKeyVec
+	)
 
-func (rp claimedCotaNftKvPairRepo) ParseClaimedUpdateCotaEntries(blockNumber uint64, entry biz.Entry) (holdCotas []biz.HoldCotaNftKvPair, claimedCotas []biz.ClaimedCotaNftKvPair, err error) {
-	return rp.generateV0ToV2ClaimedUpdateKvPair(blockNumber, entry)
-}
-
-func (rp claimedCotaNftKvPairRepo) generateV0ToV2ClaimedKvPair(blockNumber uint64, entry biz.Entry) (holdCotas []biz.HoldCotaNftKvPair, claimedCotas []biz.ClaimedCotaNftKvPair, err error) {
-	var holdCotaKeyVec *smt.HoldCotaNFTKeyVec = nil
-	var holdCotaValueVec *smt.HoldCotaNFTValueVec = nil
-	var claimedCotaKeyVec *smt.ClaimCotaNFTKeyVec = nil
 	if entry.Version == 0 {
 		entries := smt.ClaimCotaNFTEntriesFromSliceUnchecked(entry.InputType[1:])
 		holdCotaKeyVec = entries.HoldKeys()
@@ -114,10 +110,12 @@ func (rp claimedCotaNftKvPairRepo) generateV0ToV2ClaimedKvPair(blockNumber uint6
 	return
 }
 
-func (rp claimedCotaNftKvPairRepo) generateV0ToV2ClaimedUpdateKvPair(blockNumber uint64, entry biz.Entry) (holdCotas []biz.HoldCotaNftKvPair, claimedCotas []biz.ClaimedCotaNftKvPair, err error) {
-	var holdCotaKeyVec *smt.HoldCotaNFTKeyVec = nil
-	var holdCotaValueVec *smt.HoldCotaNFTValueVec = nil
-	var claimedCotaKeyVec *smt.ClaimCotaNFTKeyVec = nil
+func (rp claimedCotaNftKvPairRepo) ParseClaimedUpdateCotaEntries(blockNumber uint64, entry biz.Entry) (holdCotas []biz.HoldCotaNftKvPair, claimedCotas []biz.ClaimedCotaNftKvPair, err error) {
+	var (
+		holdCotaKeyVec    *smt.HoldCotaNFTKeyVec
+		holdCotaValueVec  *smt.HoldCotaNFTValueVec
+		claimedCotaKeyVec *smt.ClaimCotaNFTKeyVec
+	)
 	if entry.Version == 0 {
 		entries := smt.ClaimUpdateCotaNFTEntriesFromSliceUnchecked(entry.InputType[1:])
 		holdCotaKeyVec = entries.HoldKeys()
@@ -167,4 +165,3 @@ func (rp claimedCotaNftKvPairRepo) generateV0ToV2ClaimedUpdateKvPair(blockNumber
 	}
 	return
 }
-

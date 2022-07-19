@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/biz"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/data/blockchain"
 	ckbTypes "github.com/nervosnetwork/ckb-sdk-go/types"
@@ -37,8 +38,7 @@ func (c CotaWitnessArgsParser) isCotaCell(output *ckbTypes.CellOutput, cotaType 
 	return output.Type.CodeHash == cotaType.CodeHash && output.Type.HashType == cotaType.HashType
 }
 
-// inputs 中 cota cells 的个数一定与 outputs 中 cota cells 的个数相等
-// 批量注册多个 cota cell 的时候 input 里可能没有 cota cell
+// There are not cota cells in inputs for registry, otherwise the amount of cota cells in inputs and outputs must be same
 func (c CotaWitnessArgsParser) cotaEntries(tx *ckbTypes.Transaction, txIndex uint32, cotaType SystemScript) ([]biz.Entry, error) {
 	inputCotaCellGroups, err := c.inputCotaCellGroups(tx.Inputs, cotaType)
 	if err != nil {
@@ -81,6 +81,7 @@ func (c CotaWitnessArgsParser) cotaEntries(tx *ckbTypes.Transaction, txIndex uin
 				LockScript: cotaCell.output.Lock,
 				TxIndex:    txIndex,
 				Version:    cotaCell.outputData[0],
+				TxHash:     tx.Hash,
 			})
 		}
 		if witnessArgs.InputType().IsSome() {
@@ -93,6 +94,7 @@ func (c CotaWitnessArgsParser) cotaEntries(tx *ckbTypes.Transaction, txIndex uin
 				LockScript: cotaCell.output.Lock,
 				TxIndex:    txIndex,
 				Version:    cotaCell.outputData[0],
+				TxHash:     tx.Hash,
 			})
 		}
 	}

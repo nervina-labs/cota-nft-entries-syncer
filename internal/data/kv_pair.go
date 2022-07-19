@@ -3,12 +3,13 @@ package data
 import (
 	"context"
 	"errors"
+	"hash/crc32"
+	"time"
+
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/biz"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/logger"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"hash/crc32"
-	"time"
 )
 
 var _ biz.KvPairRepo = (*kvPairRepo)(nil)
@@ -134,12 +135,14 @@ func (rp kvPairRepo) CreateCotaEntryKvPairs(ctx context.Context, checkInfo biz.C
 					TokenIndex:           cota.TokenIndex,
 					OutPoint:             cota.OutPoint,
 					OutPointCrc:          cota.OutPointCrc,
+					TxHash:               cota.TxHash,
 					State:                cota.State,
 					Configure:            cota.Configure,
 					Characteristic:       cota.Characteristic,
 					ReceiverLockScriptId: cota.ReceiverLockScriptId,
 					LockHash:             cota.LockHash,
 					LockHashCrc:          cota.LockHashCrc,
+					LockScriptId:         cota.LockScriptId,
 					Version:              cota.Version,
 				}
 			}
@@ -473,7 +476,7 @@ func (rp kvPairRepo) CreateMetadataKvPairs(ctx context.Context, checkInfo biz.Ch
 			if err := tx.Model(IssuerInfoVersion{}).WithContext(ctx).Create(issuerInfoVersions).Error; err != nil {
 				return err
 			}
-			// upsert issuer info
+			// insert issuer info
 			issuerInfos := make([]IssuerInfo, len(kvPair.IssuerInfos))
 			for i, issuer := range kvPair.IssuerInfos {
 				issuerInfos[i] = IssuerInfo{
@@ -556,7 +559,7 @@ func (rp kvPairRepo) CreateMetadataKvPairs(ctx context.Context, checkInfo biz.Ch
 			if err := tx.Model(ClassInfoVersion{}).WithContext(ctx).Create(classInfoVersions).Error; err != nil {
 				return err
 			}
-			// upsert class info
+			// insert class info
 			classInfos := make([]ClassInfo, len(kvPair.ClassInfos))
 			for i, class := range kvPair.ClassInfos {
 				classInfos[i] = ClassInfo{

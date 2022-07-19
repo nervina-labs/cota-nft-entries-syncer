@@ -59,8 +59,11 @@ func initApp(database *config.Database, ckbNode *config.CkbNode, loggerLogger *l
 	invalidDataRepo := data.NewInvalidDateRepo(dataData, loggerLogger)
 	invalidDataUsecase := biz.NewInvalidDataUsecase(invalidDataRepo, loggerLogger)
 	invalidDataCleaner := service.NewInvalidDataService(invalidDataUsecase, loggerLogger, ckbNodeClient)
+	withdrawExtraInfoRepo := data.NewWithdrawExtraInfoRepo(dataData, loggerLogger)
+	withdrawExtraInfoUsecase := biz.NewWithdrawExtraInfoUsecase(withdrawExtraInfoRepo, loggerLogger)
+	withdrawExtraInfoService := service.NewWithdrawExtraInfoService(withdrawExtraInfoUsecase, loggerLogger, ckbNodeClient)
 	dbMigration := data.NewDBMigration(dataData, loggerLogger)
-	appApp := newApp(loggerLogger, blockSyncService, checkInfoCleanerService, metadataSyncService, invalidDataCleaner, dbMigration)
+	appApp := newApp(loggerLogger, blockSyncService, checkInfoCleanerService, metadataSyncService, invalidDataCleaner, withdrawExtraInfoService, dbMigration)
 	return appApp, func() {
 		cleanup()
 	}, nil

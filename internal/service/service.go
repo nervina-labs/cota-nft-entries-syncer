@@ -2,15 +2,16 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/google/wire"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/biz"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/data"
 	"github.com/nervina-labs/cota-nft-entries-syncer/internal/logger"
 	ckbTypes "github.com/nervosnetwork/ckb-sdk-go/types"
-	"time"
 )
 
-var ProviderSet = wire.NewSet(NewBlockSyncService, NewCheckInfoService, NewMetadataSyncService, NewInvalidDataService)
+var ProviderSet = wire.NewSet(NewBlockSyncService, NewCheckInfoService, NewMetadataSyncService, NewInvalidDataService, NewWithdrawExtraInfoService)
 
 type BlockSyncService struct {
 	checkInfoUsecase *biz.CheckInfoUsecase
